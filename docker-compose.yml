@@ -1,0 +1,16 @@
+services: 
+  db:
+    image: postgres:15-alpine
+    container_name: vanguard_postgres 
+    restart: always 
+    environment: 
+      POSTGRES_USER: root 
+      POSTGRES_PASSWORD: root 
+      POSTGRES_DB: vanguard_os
+    ports: 
+      - "5433:5432"
+    volumes: 
+      - vanguard_pgdata:/var/lib/postgresql/data
+
+volumes: 
+  vanguard_pgdata: 
