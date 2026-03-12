@@ -29,6 +29,8 @@ func main() {
 
 	fmt.Println("🚀 [VANGUARD.OS] SUCCESSFULLY CONNECTED TO PostgreSQL!")
 
+	RunMigrations(db)
+
 	// 4. Criando uma rota de teste (Health Check)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
