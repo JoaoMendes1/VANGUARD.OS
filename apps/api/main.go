@@ -40,6 +40,18 @@ func main() {
 	http.HandleFunc("/auth/register", RegisterHandler(db))
 	http.HandleFunc("/auth/login", LoginHandler(db))
 
+	// Rotas Protegidas (Envelopadas pelo AuthMiddleware)
+	http.HandleFunc("/protocols", AuthMiddleware(func(w http.ResponseWriter, r *http.Request){
+		// O Go não tem roteador embutido avançado, então separamos o POST do GET manualmente aqui
+		if r.Method == http.MethodPost {
+			CreateProtocolHandler(db) (w, r)
+		} else if r.Method == http.MethodGet {
+			GetProtocolsHandler(db) (w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
 	// 5. Subindo o servidor na porta 8080
 	fmt.Println("⚡ API Server running on http://localhost:8080")
 	err = http.ListenAndServe(":8080", nil)
