@@ -52,6 +52,10 @@ func main() {
 		}
 	}))
 
+	http.HandleFunc("/engine/reward", AuthMiddleware(AdminRewardHandler(db)))
+
+	fmt.Println("⚡ API Server running on http://localhost:8080")
+
 	// 5. Subindo o servidor na porta 8080
 	fmt.Println("⚡ API Server running on http://localhost:8080")
 	err = http.ListenAndServe(":8080", nil)
