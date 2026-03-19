@@ -29,6 +29,25 @@ func main() {
 
 	fmt.Println("🚀 [VANGUARD.OS] SUCCESSFULLY CONNECTED TO PostgreSQL!")
 
+	// PATCH DA ISSUE #9: Garante que a coluna de streak exista na tabela
+	_, err = db.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS current_streak INT DEFAULT 0;`)
+	if err != nil {
+		log.Printf("Aviso: Falha ao verificar/criar coluna current_streak: %v\n", err)
+	}
+
+	// PATCH DA ISSUE #9 (Parte 2): Ensina o banco de dados a aceitar 'PENALTY'
+	_, err = db.Exec(`
+		ALTER TABLE ledger_entries DROP CONSTRAINT IF EXISTS ledger_entries_entry_type_check;
+		ALTER TABLE ledger_entries ADD CONSTRAINT ledger_entries_entry_type_check CHECK (entry_type IN ('GAINED', 'SPENT', 'PENALTY'));
+	`)
+	if err != nil {
+		log.Printf("Aviso: Falha ao atualizar a trava de segurança do ledger: %v\n", err)
+	}
+
+	// Inicializa o serviço de rotinas em background
+	cronService := StartCronJobs(db)
+	defer cronService.Stop()
+
 	RunMigrations(db)
 
 	// 4. Criando uma rota de teste (Health Check)
