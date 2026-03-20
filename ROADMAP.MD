@@ -4,43 +4,43 @@ Este documento descreve a visão técnica de alto nível e as etapas granulares 
 
 ---
 
-## 🚀 Fase 1: Fundação & Infraestrutura (Backend) - 🚧 EM ANDAMENTO
+## ✅ Fase 1: Fundação & Infraestrutura (Backend) - CONCLUÍDO
 
 O objetivo desta fase é colocar a estrutura base do projeto de pé, garantindo que o banco de dados e as tecnologias conversem entre si.
 
 ### 1.1: Setup do Repositório
 - [x] Levantamento de Requisitos e Definição de Escopo (PRD concluído).
 - [x] Validação Visual de UI/UX (Mockup interativo construído em React).
-- [ ] Inicializar o Monorepo com Turborepo.
-- [ ] Configurar padrão de commits (Husky, Commitlint).
-- [ ] Criar arquivo `docker-compose.yml` para rodar o PostgreSQL localmente.
+- [x] Inicializar o Monorepo com Turborepo.
+- [x] Configurar padrão de commits (Husky, Commitlint).
+- [x] Criar arquivo `docker-compose.yml` para rodar o PostgreSQL localmente.
 
 ### 1.2: Modelagem de Dados e Go Server
-- [ ] Estruturar o esquema SQL (Tabelas: `users`, `hobbies`, `protocols`, `operations`, `ledger_entries`, `sprints`).
-- [ ] Inicializar o servidor Backend em Go (`go mod init`).
-- [ ] Configurar conexão do Go com o banco PostgreSQL.
-- [ ] Criar a estrutura de pastas do Backend (Controllers, Models, Routes).
+- [x] Estruturar o esquema SQL (Tabelas: `users`, `hobbies`, `protocols`, `operations`, `ledger_entries`, `sprints`).
+- [x] Inicializar o servidor Backend em Go (`go mod init`).
+- [x] Configurar conexão do Go com o banco PostgreSQL.
+- [x] Criar a estrutura de pastas do Backend (Controllers, Models, Routes).
 
 ### 1.3: Sistema de Autenticação (MVP)
-- [ ] Criar API de Cadastro de Usuário (Criptografia de senha com bcrypt).
-- [ ] Criar API de Login com geração de JWT (JSON Web Token).
-- [ ] Implementar Middleware de autenticação no Go para proteger rotas.
+- [x] Criar API de Cadastro de Usuário (Criptografia de senha com bcrypt).
+- [x] Criar API de Login com geração de JWT (JSON Web Token).
+- [x] Implementar Middleware de autenticação no Go para proteger rotas.
 
 ---
 
-## ⚙️ Fase 2: Motor de Regras (Core API) - ⏳ PRÓXIMO PASSO
+## 🚧 Fase 2: Motor de Regras (Core API) - EM ANDAMENTO
 
 Nesta fase, programaremos a matemática do jogo. Todo o ganho, perda de XP e lógica de hábitos viverá exclusivamente no servidor (Backend) para evitar fraudes (*cheats*).
 
-### 2.1: APIs de Operações e Protocolos
+### 2.1: APIs de Operações e Protocolos (O PRÓXIMO ALVO - ISSUE #10)
 - [ ] CRUD de Protocolos (Criar, Listar, Concluir hábito, Resetar Streak).
 - [ ] CRUD de Operações (Criar tarefa, Listar por data, Concluir, Deletar).
 - [ ] Rota para buscar o Estado atual do Jogador (XP, Level, Créditos, Atributos).
 
 ### 2.2: O Motor de XP e Economia
-- [ ] Implementar função global de distribuição de recompensa (Calcula XP, Atualiza V-Credits, Atualiza Ledger).
+- [x] **Issue #8:** Implementar função global de distribuição de recompensa (Calcula XP, Atualiza V-Credits, Atualiza Ledger).
 - [ ] Implementar lógica de Tag de Hobbies (Se operação tem *tag*, envia XP para a tabela do Hobby).
-- [ ] Desenvolver o *Cronjob* da Meia-Noite (Worker que roda 00:00 para verificar protocolos falhos e aplicar punição de *Decay*).
+- [x] **Issue #9:** Desenvolver o *Cronjob* da Meia-Noite (Worker que roda 00:00 para verificar protocolos falhos e aplicar punição de *Decay*).
 
 ---
 
