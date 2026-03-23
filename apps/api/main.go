@@ -71,6 +71,9 @@ func main() {
 		}
 	}))
 
+	// Rota para concluir o hábito (Injeta XP)
+	http.HandleFunc("/protocols/complete", AuthMiddleware(CompleteProtocolHandler(db)))
+
 	http.HandleFunc("/engine/reward", AuthMiddleware(AdminRewardHandler(db)))
 
 	fmt.Println("⚡ API Server running on http://localhost:8080")

@@ -86,3 +86,95 @@ func GetProtocolsHandler(db *sql.DB) http.HandlerFunc {
 		json.NewEncoder(w).Encode(protocols)
 	}
 }
+
+// Estruturra para receber o ID do protocolo que será concluído
+type CompleteProtocolPayload struct {
+	ProtocolID string `json:"protocol_id"`
+}
+
+// 3. CONCLUIR UM HÁBITO (POST /protocols/complete)
+func CompleteProtocolHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		userID := r.Context().Value(userContextKey).(string)
+
+		var payload CompleteProtocolPayload
+		err := json.NewDecoder(r.Body).Decode(&payload)
+		if err != nil || payload.ProtocolID == "" {
+			http.Error(w, "Invalid payload. 'protocol_id' is required.", http.StatusBadRequest)
+			return
+		}
+
+		// 1. Inicia a Transação
+		tx, err := db.Begin()
+		if err != nil {
+			http.Error(w, "Database transaction failed", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+
+		// 2. Atualiza o Protocolo (Anti-Cheat Integrado no SQL)
+		// Só atualiza se last_completed_at for nulo ou menor que a data atual (hoje)
+		var updatedProtocolID string
+		updateProtocolQuery := `
+			UPDATE protocols 
+			SET streak_count = streak_count + 1, last_completed_at = CURRENT_DATE 
+			WHERE id = $1 AND user_id = $2 AND (last_completed_at IS NULL OR last_completed_at < CURRENT_DATE)
+			RETURNING id
+		`
+		err = tx.QueryRow(updateProtocolQuery, payload.ProtocolID, userID).Scan(&updatedProtocolID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, "Protocol not found or already completed today", http.StatusConflict)
+				return
+			}
+			http.Error(w, "Failed to update protocol", http.StatusInternalServerError)
+			return
+		}
+
+		// 3. Injeta 50 XP e calcula o Level Up diretamente no SQL
+		var currentXP, currentLevel int
+		updateUserQuery := `
+			UPDATE users 
+			SET current_xp = current_xp + 50,
+			    current_level = ((current_xp + 50) / 1000) + 1
+			WHERE id = $1 
+			RETURNING current_xp, current_level
+		`
+		err = tx.QueryRow(updateUserQuery, userID).Scan(&currentXP, &currentLevel)
+		if err != nil {
+			http.Error(w, "Failed to update user XP", http.StatusInternalServerError)
+			return
+		}
+
+		// 4. Grava no Extrato (Ledger)
+		insertLedgerQuery := `
+			INSERT INTO ledger_entries (user_id, amount, entry_type, description) 
+			VALUES ($1, $2, 'GAINED', $3)
+		`
+		_, err = tx.Exec(insertLedgerQuery, userID, 50, "Protocol Completed")
+		if err != nil {
+			http.Error(w, "Failed to write to ledger", http.StatusInternalServerError)
+			return
+		}
+
+		// 5. Confirma a Transação
+		err = tx.Commit()
+		if err != nil {
+			http.Error(w, "Failed to commit transaction", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"message":       "Protocol completed successfully!",
+			"xp_gained":     50,
+			"new_total_xp":  currentXP,
+			"current_level": currentLevel,
+		})
+	}
+}
